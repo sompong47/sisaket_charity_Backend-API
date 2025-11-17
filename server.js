@@ -16,7 +16,12 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://your-frontend-domain.com'] 
+    : '*',
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -36,7 +41,26 @@ app.use('/api/statistics', statisticRoutes);
 
 // Root route - serve dashboard
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  const indexPath = path.join(__dirname, 'public', 'index.html');
+  if (require('fs').existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.json({
+      message: '🎉 Sisaket Charity API',
+      version: '1.0.0',
+      status: 'Running',
+      endpoints: {
+        api: '/api',
+        health: '/health',
+        products: '/api/products',
+        orders: '/api/orders',
+        customers: '/api/customers',
+        users: '/api/users',
+        settings: '/api/settings',
+        statistics: '/api/statistics'
+      }
+    });
+  }
 });
 
 // API Info
@@ -44,6 +68,7 @@ app.get('/api', (req, res) => {
   res.json({
     message: '🎉 Sisaket Charity API',
     version: '1.0.0',
+    environment: process.env.NODE_ENV || 'production',
     endpoints: {
       products: '/api/products',
       orders: '/api/orders',
@@ -51,8 +76,7 @@ app.get('/api', (req, res) => {
       users: '/api/users',
       settings: '/api/settings',
       statistics: '/api/statistics'
-    },
-    documentation: 'http://localhost:3000/api/docs'
+    }
   });
 });
 
@@ -62,6 +86,7 @@ app.get('/health', (req, res) => {
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'production',
     database: 'Connected'
   });
 });
@@ -81,18 +106,20 @@ app.use((err, req, res, next) => {
   res.status(500).json({
     success: false,
     message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
   });
 });
 
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
 
-app.listen(PORT, () => {
+app.listen(PORT, HOST, () => {
   console.log('='.repeat(50));
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
-  console.log(`📝 Dashboard: http://localhost:${PORT}/`);
-  console.log(`📊 API Info: http://localhost:${PORT}/api`);
-  console.log(`💚 Health Check: http://localhost:${PORT}/health`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'production'}`);
+  console.log(`💚 Health Check: /health`);
+  console.log(`📝 API Info: /api`);
   console.log('='.repeat(50));
 });
+
+module.exports = app;
