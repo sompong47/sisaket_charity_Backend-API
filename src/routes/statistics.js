@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const Customer = require('../models/Customer');
 
 // GET - สรุปสถิติทั้งหมด
 router.get('/summary', async (req, res) => {
@@ -12,32 +13,31 @@ router.get('/summary', async (req, res) => {
     // นับจำนวนคำสั่งซื้อ
     const totalOrders = await Order.countDocuments();
     
+    // นับจำนวนลูกค้า
+    const totalCustomers = await Customer.countDocuments();
+    
     // คำนวณยอดขายรวม
-    const revenueData = await Order.aggregate([
-      { 
-        $match: { 
-          'payment.status': 'paid',
-          status: { $ne: 'cancelled' }
-        } 
-      },
-      { 
-        $group: { 
-          _id: null, 
-          totalRevenue: { $sum: '$pricing.total' },
-          totalItems: { $sum: '$shipping.totalItems' }
-        } 
-      }
-    ]);
-
-    const revenue = revenueData[0] || { totalRevenue: 0, totalItems: 0 };
+    const orders = await Order.find({ 
+      'payment.status': 'paid',
+      status: { $ne: 'cancelled' }
+    });
+    
+    const totalRevenue = orders.reduce((sum, order) => {
+      return sum + (order.pricing?.total || 0);
+    }, 0);
+    
+    const totalItems = orders.reduce((sum, order) => {
+      return sum + (order.shipping?.totalItems || 0);
+    }, 0);
 
     res.json({
       success: true,
       data: {
         totalProducts,
         totalOrders,
-        totalRevenue: revenue.totalRevenue,
-        totalItems: revenue.totalItems
+        totalCustomers,
+        totalRevenue,
+        totalItems
       }
     });
   } catch (error) {

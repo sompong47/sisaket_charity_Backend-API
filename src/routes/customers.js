@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const Setting = require('../models/setting');
+const Customer = require('../models/Customer');
 
-// GET - ดูการตั้งค่าทั้งหมด
+// GET - ดูลูกค้าทั้งหมด
 router.get('/', async (req, res) => {
   try {
-    const settings = await Setting.find();
+    const customers = await Customer.find().sort({ createdAt: -1 });
     res.json({
       success: true,
-      count: settings.length,
-      data: settings
+      count: customers.length,
+      data: customers
     });
   } catch (error) {
     res.status(500).json({
@@ -19,21 +19,21 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET - ดูการตั้งค่าตาม key
-router.get('/:key', async (req, res) => {
+// GET - ดูลูกค้าตาม ID
+router.get('/:id', async (req, res) => {
   try {
-    const setting = await Setting.findOne({ key: req.params.key });
+    const customer = await Customer.findById(req.params.id);
     
-    if (!setting) {
+    if (!customer) {
       return res.status(404).json({
         success: false,
-        message: 'Setting not found'
+        message: 'Customer not found'
       });
     }
 
     res.json({
       success: true,
-      data: setting
+      data: customer
     });
   } catch (error) {
     res.status(500).json({
@@ -43,14 +43,14 @@ router.get('/:key', async (req, res) => {
   }
 });
 
-// POST - สร้างการตั้งค่า
+// POST - สร้างลูกค้า
 router.post('/', async (req, res) => {
   try {
-    const setting = await Setting.create(req.body);
+    const customer = await Customer.create(req.body);
     res.status(201).json({
       success: true,
-      message: 'Setting created successfully',
-      data: setting
+      message: 'Customer created successfully',
+      data: customer
     });
   } catch (error) {
     res.status(400).json({
@@ -60,26 +60,26 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT - แก้ไขการตั้งค่า
-router.put('/:key', async (req, res) => {
+// PUT - แก้ไขลูกค้า
+router.put('/:id', async (req, res) => {
   try {
-    const setting = await Setting.findOneAndUpdate(
-      { key: req.params.key },
+    const customer = await Customer.findByIdAndUpdate(
+      req.params.id,
       req.body,
       { new: true, runValidators: true }
     );
 
-    if (!setting) {
+    if (!customer) {
       return res.status(404).json({
         success: false,
-        message: 'Setting not found'
+        message: 'Customer not found'
       });
     }
 
     res.json({
       success: true,
-      message: 'Setting updated successfully',
-      data: setting
+      message: 'Customer updated successfully',
+      data: customer
     });
   } catch (error) {
     res.status(400).json({
