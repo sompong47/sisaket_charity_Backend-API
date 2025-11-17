@@ -1,120 +1,40 @@
-const express = require('express');
-const router = express.Router();
-const Product = require('../models/Product');
+import { NextResponse } from 'next/server';
+import connectDB from '@/lib/mongodb';
+import Product from '@/lib/models/Product';
 
-// GET - ดูสินค้าทั้งหมด
-router.get('/', async (req, res) => {
+export async function GET(request) {
   try {
+    await connectDB();
     const products = await Product.find({ isActive: true });
-    res.json({
+    
+    return NextResponse.json({
       success: true,
       count: products.length,
       data: products
     });
   } catch (error) {
-    res.status(500).json({
+    return NextResponse.json({
       success: false,
       message: error.message
-    });
+    }, { status: 500 });
   }
-});
+}
 
-// GET - ดูสินค้าตาม ID
-router.get('/:id', async (req, res) => {
+export async function POST(request) {
   try {
-    const product = await Product.findById(req.params.id);
+    await connectDB();
+    const body = await request.json();
+    const product = await Product.create(body);
     
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: product
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
-});
-
-// POST - สร้างสินค้าใหม่
-router.post('/', async (req, res) => {
-  try {
-    const product = await Product.create(req.body);
-    res.status(201).json({
+    return NextResponse.json({
       success: true,
       message: 'Product created successfully',
       data: product
-    });
+    }, { status: 201 });
   } catch (error) {
-    res.status(400).json({
+    return NextResponse.json({
       success: false,
       message: error.message
-    });
+    }, { status: 400 });
   }
-});
-
-// PUT - แก้ไขสินค้า
-router.put('/:id', async (req, res) => {
-  try {
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Product updated successfully',
-      data: product
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message
-    });
-  }
-});
-
-// DELETE - ลบสินค้า (soft delete)
-router.delete('/:id', async (req, res) => {
-  try {
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      { isActive: false },
-      { new: true }
-    );
-
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Product deleted successfully'
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
-});
-
-module.exports = router;
+}
