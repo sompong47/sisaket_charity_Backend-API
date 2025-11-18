@@ -22,8 +22,9 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// ✅ แก้ไขตรงนี้: เพิ่ม limit เป็น 50mb เพื่อให้รับรูป Base64 ขนาดใหญ่ได้
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files
 app.use(express.static('public'));
