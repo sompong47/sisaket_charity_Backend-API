@@ -16,10 +16,12 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
+// ✅ แก้ไข CORS: ใช้ origin: true เพื่อให้รองรับทั้ง localhost และเว็บจริง พร้อมกับ credentials: true ได้
 app.use(cors({
-  origin: '*', 
+  origin: true, 
   credentials: true
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -85,7 +87,7 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'production',
-    database: 'Connected'
+    database: 'Connected' // สามารถปรับให้เช็คสถานะ mongoose.connection.readyState ได้ถ้าต้องการ
   });
 });
 
