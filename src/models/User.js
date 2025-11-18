@@ -1,21 +1,21 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  // 1. Google ID (ไม่ต้อง Required แล้ว เพราะคนใช้เบอร์โทรจะไม่มี)
+  // 1. Google ID
   googleId: {
     type: String,
     unique: true,
-    sparse: true // ✅ สำคัญ: ใส่ sparse เพื่อบอกว่า "ถ้าไม่มีค่านี้ (null) ไม่ต้องเช็คซ้ำ"
+    sparse: true
   },
   
-  // 2. Email (ไม่ต้อง Required เผื่อคนใช้เบอร์โทรไม่ได้กรอก)
+  // 2. Email
   email: {
     type: String,
     unique: true,
     sparse: true
   },
 
-  // 3. ชื่อ (จำเป็นต้องมี)
+  // 3. ชื่อ
   name: {
     type: String,
     required: true
@@ -23,16 +23,23 @@ const userSchema = new mongoose.Schema({
 
   picture: String,
 
-  // 4. เบอร์โทร (เพิ่ม unique และ sparse)
+  // 4. เบอร์โทร
   phone: {
     type: String,
     unique: true,
     sparse: true
   },
 
-  // 5. ✅ เพิ่ม Password (สำหรับคนลงทะเบียนผ่านเว็บ)
+  // 5. Password
   password: {
     type: String
+  },
+
+  // 6. ✅ เพิ่ม Role (บทบาท)
+  role: {
+    type: String,
+    enum: ['user', 'admin'], // ค่าที่เป็นไปได้
+    default: 'user'          // สมัครใหม่เป็น user ก่อนเสมอ
   },
 
   lastLogin: {
@@ -42,9 +49,5 @@ const userSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
-
-// Index ไม่ต้องประกาศซ้ำก็ได้ครับ เพราะใส่ unique: true ข้างบนแล้ว Mongoose จัดการให้
-// userSchema.index({ googleId: 1 });
-// userSchema.index({ email: 1 });
 
 module.exports = mongoose.model('User', userSchema);
