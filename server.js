@@ -116,9 +116,10 @@ const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
 app.listen(PORT, HOST, () => {
   console.log('='.repeat(50));
   console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`🌐 URL: http://${HOST}:${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'production'}`);
-  console.log(`💚 Health Check: /health`);
-  console.log(`📝 API Info: /api`);
+  console.log(`💚 Health Check: http://${HOST}:${PORT}/health`);
+  console.log(`📝 API Info: http://${HOST}:${PORT}/api`);
   console.log('='.repeat(50));
 });
 
